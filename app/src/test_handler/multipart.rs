@@ -1,9 +1,9 @@
 use faithea::MultipartData;
 use faithea::data::inbound::multipart::MultiPartFile;
 use faithea::data::inbound::multipart::Multipart;
+use faithea::data::inbound::multipart::MultipartError;
 use faithea::data::inbound::multipart::Part;
 use faithea::data::inbound::multipart::TryFromParts;
-use faithea::error::MultipartError;
 use faithea::post;
 
 #[derive(Debug)]

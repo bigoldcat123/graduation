@@ -16,7 +16,7 @@ use thiserror::Error;
 use crate::{
     TryConvertFrom,
     data::inbound::multipart::{MultipartDataMap, parser::h1::MultiPartBodyParser},
-    error::{BeforeHandlerError, BodyParseError},
+    error::BodyParseError,
     handler::types::HttpHandlerError,
     request::{
         content_type::ContentType, cookie::Cookie, error::ParseHandlerParamError,
@@ -54,30 +54,22 @@ pub struct ConvertError {
 pub trait TryFromParam<'a>: Sized {
     fn try_from_param(value: &'a str) -> Result<Self, ParseHandlerParamError>;
 }
-// impl<T: TryFromParam> TryConvertFrom<&String> for T {
-//     fn try_convert_from(value: &String) -> Result<Self, HttpHandlerError> {
-//         Self::try_from_param(value)
-//     }
-// }
 pub trait TryFromRequest<'a>: Sized {
     fn try_from_request(req: &'a mut HttpRequest) -> Result<Self, ParseHandlerParamError>;
 }
 impl<'a, T: TryFromRequest<'a>> TryConvertFrom<&'a mut HttpRequest> for T {
     type Error = HttpHandlerError;
     fn try_convert_from(value: &'a mut HttpRequest) -> Result<Self, Self::Error> {
-        Self::try_from_request(value)
-            .map_err(Into::<BeforeHandlerError>::into)
-            .map_err(Into::into)
+        Self::try_from_request(value).map_err(Into::into)
     }
 }
 
 #[derive(Debug)]
 pub struct HttpRequest {
-    pub(crate) _inner: Request<Option<RequestBody>>, // way too big!!!!!!!!!!!!
+    pub(crate) _inner: Request<Option<RequestBody>>,
     pub(crate) path_param: Option<PathParam>,
     pub(crate) search_param: Option<SearchParam>,
     pub(crate) multi_seg_param: Option<String>,
-    // pub(crate) cookie:Option<Cookie<'a>>
 }
 
 impl HttpRequest {
@@ -87,7 +79,6 @@ impl HttpRequest {
             path_param: None,
             multi_seg_param: None,
             search_param: None,
-            // cookie:None
         }
     }
     pub fn body(&mut self) -> &mut Option<RequestBody> {
@@ -99,10 +90,8 @@ impl HttpRequest {
             path_param: None,
             multi_seg_param: None,
             search_param: None,
-            // cookie:None
         }
     }
-    //#[allow(unused)]
     pub fn cookies<'a>(&'a self) -> Option<Cookie<'a>> {
         if let Some(cookie) = self._inner.headers().get(COOKIE) {
             if let Ok(cookie) = cookie.to_str() {
@@ -216,7 +205,6 @@ macro_rules! impl_convert_from_param {
                 fn try_from_param(value:&'a str) -> Result<Self,$crate::request::error::ParseHandlerParamError> {
                     use $crate::request::ConvertError;
                     value.parse::<$t>().map_err(|_| ConvertError {from:value.to_string(),to:stringify!($t).to_string()}).map_err(Into::into)
-                    // value.parse::<$t>().map_err(|_| $crate::error::Error::before_handler_invalid_param(format!("can not convert String \"{}\" to type {}",value,stringify!($t))))
                 }
             }
         )*
@@ -231,11 +219,6 @@ impl<'a> TryFromParam<'a> for &'a str {
         Ok(value)
     }
 }
-// impl <'a> TryFromParam<'a> for &'a String {
-//     fn try_from_param(value: &'a str) -> Result<Self, HttpHandlerError> {
-//         Ok(value)
-//     }
-// }
 impl<'a> TryFromParam<'a> for String {
     fn try_from_param(value: &'a str) -> Result<Self, ParseHandlerParamError> {
         Ok(value.to_string())
@@ -246,12 +229,9 @@ impl<'a, T: TryFromParam<'a>> TryConvertFrom<Option<&'a String>> for T {
     type Error = HttpHandlerError;
     fn try_convert_from(value: Option<&'a String>) -> Result<Self, Self::Error> {
         if let Some(value) = value {
-            T::try_from_param(value).map_err(Into::<BeforeHandlerError>::into)
-                .map_err(Into::<Self::Error>::into)
+            T::try_from_param(value).map_err(Into::into)
         } else {
-            Err(Into::<Self::Error>::into(Into::<BeforeHandlerError>::into(
-                ParseHandlerParamError::ParamNotExist,
-            )))
+            Err(ParseHandlerParamError::ParamNotExist.into())
         }
     }
 }
@@ -259,9 +239,7 @@ impl<'a, T: TryFromParam<'a>> TryConvertFrom<Option<&'a String>> for Option<T> {
     type Error = HttpHandlerError;
     fn try_convert_from(value: Option<&'a String>) -> Result<Self, Self::Error> {
         if let Some(value) = value {
-            T::try_from_param(value)
-                .map(|x| Some(x)).map_err(Into::<BeforeHandlerError>::into)
-                .map_err(Into::<Self::Error>::into)
+            T::try_from_param(value).map(Some).map_err(Into::into)
         } else {
             Ok(None)
         }

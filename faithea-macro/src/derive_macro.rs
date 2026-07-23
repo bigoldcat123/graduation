@@ -2,15 +2,6 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{Attribute, Data, DeriveInput, Error, Expr, Fields, Lit};
 
-// fn is_option(ty: &Type) -> bool {
-//     if let Type::Path(p) = ty
-//         && let Some(seg) = p.path.segments.last()
-//     {
-//         return seg.ident == "Option";
-//     }
-//     false
-// }
-
 pub fn expand_multipart(input: &DeriveInput) -> Result<TokenStream, Error> {
     let struct_name = &input.ident;
 
@@ -44,12 +35,6 @@ pub fn expand_multipart(input: &DeriveInput) -> Result<TokenStream, Error> {
                 )?
 
         }
-        // TryFromPart
-        // quote! {
-        //     #field_ident: data
-        //         .remove(#field_name)
-        //         .try_convert_into()?
-        // }
     });
 
     Ok(quote! {
@@ -59,7 +44,7 @@ pub fn expand_multipart(input: &DeriveInput) -> Result<TokenStream, Error> {
                     String,
                     Vec<faithea::data::inbound::multipart::Part>,
                 >,
-            ) -> Result<Self, faithea::error::MultipartError> {
+            ) -> Result<Self, faithea::data::inbound::multipart::MultipartError> {
                 use faithea::TryConvertInto;
                 use faithea::data::inbound::multipart::TryFromParts;
                 Ok(Self {

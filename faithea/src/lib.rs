@@ -58,12 +58,6 @@ macro_rules! map_str {
     };
 }
 
-#[macro_export]
-macro_rules! map_fu {
-    () => {
-        |_| $crate::error::Error::Unknown
-    };
-}
 pub fn regulate_url_path<T: AsRef<str>>(s: T) -> String {
     let a: &str = s.as_ref();
     let mut v = a.into();

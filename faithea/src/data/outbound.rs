@@ -10,7 +10,6 @@ use serde::Serialize;
 use crate::{
     data::Json,
     handler::types::HttpHandlerError,
-    map_fu,
     response::{HttpResponseModifier, HttpResponseModifierFuture, ResponseBody},
 };
 impl<T: Serialize> TryFrom<&Json<T>> for ResponseBody {
@@ -37,7 +36,7 @@ impl<T: Serialize + Send + Sync> HttpResponseModifier for Json<T> {
             use ResponseBody::*;
             res.add_header(
                 CONTENT_TYPE,
-                HeaderValue::from_maybe_shared("application/json").map_err(map_fu!())?,
+                HeaderValue::from_maybe_shared("application/json")?,
             );
             let body = self.try_into()?;
             if let Simple(Some(ref b)) = body {
@@ -63,12 +62,12 @@ impl HttpResponseModifier for &str {
             // res.add_header(("content-type".to_string(), "text/plain".to_string()));
             res.add_header(
                 CONTENT_TYPE,
-                HeaderValue::from_maybe_shared("text/plain").map_err(map_fu!())?,
+                HeaderValue::from_maybe_shared("text/plain")?,
             );
             // res.add_header(("content-length".to_string(), self.len().to_string()));
             res.add_header(
                 CONTENT_LENGTH,
-                HeaderValue::from_maybe_shared(self.len().to_string()).map_err(map_fu!())?,
+                HeaderValue::from_maybe_shared(self.len().to_string())?,
             );
             let b: Bytes = Bytes::from_iter(self.as_bytes().iter().copied());
             res.set_body(ResponseBody::Simple(Some(b)));
@@ -85,12 +84,12 @@ impl HttpResponseModifier for String {
             // res.add_header(("content-type".to_string(), "text/plain".to_string()));
             res.add_header(
                 CONTENT_TYPE,
-                HeaderValue::from_maybe_shared("text/plain").map_err(map_fu!())?,
+                HeaderValue::from_maybe_shared("text/plain")?,
             );
             // res.add_header(("content-length".to_string(), self.len().to_string()));
             res.add_header(
                 CONTENT_LENGTH,
-                HeaderValue::from_maybe_shared(self.len().to_string()).map_err(map_fu!())?,
+                HeaderValue::from_maybe_shared(self.len().to_string())?,
             );
             let b: Bytes = Bytes::from_iter(self.as_bytes().iter().copied());
             res.set_body(ResponseBody::Simple(Some(b)));
@@ -117,7 +116,7 @@ impl<T: AsRef<Path> + Send + Sync> HttpResponseModifier for StaticFile<T> {
             let len = meta.len();
             res.add_header(
                 CONTENT_LENGTH,
-                HeaderValue::from_maybe_shared(len.to_string()).map_err(map_fu!())?,
+                HeaderValue::from_maybe_shared(len.to_string())?,
             );
             res.add_header(
                 CONTENT_TYPE,
