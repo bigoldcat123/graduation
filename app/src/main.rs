@@ -1,7 +1,7 @@
 // #![allow(unused)]
 use chenzhonghai_app::test_handler::test_handlers;
 use chenzhonghai_app::ws::ws;
-use faithea::{res_modifiers, server::HttpServer};
+use faithea::server::HttpServer;
 
 //(flavor = "current_thread")
 #[tokio::main(flavor = "current_thread")]
@@ -17,9 +17,9 @@ async fn main() {
             Ok(e)
         })
         .websocket("/ws/{name}", ws)
-        .globale_error_handler(async |e: faithea::error::Error| {
-            res_modifiers!(format!("some error~~ {:?}", e))
-        })
+        // .globale_error_handler(async |e: faithea::error::Error| {
+        //     res_modifiers!(format!("some error~~ {}", e))
+        // })
         .static_map(
             "/static/**",
             "/Users/dadigua/Desktop/faithea-project/front-end-app",
@@ -35,53 +35,4 @@ async fn main() {
         .run()
         .await;
     println!("{:?}", r);
-}
-
-#[cfg(test)]
-mod tests {
-    use faithea::{get, handlers};
-
-    use super::*;
-
-    #[tokio::test]
-    async fn main() {
-HttpServer::builder()
-    .mount("/", test_handlers())
-    .cors()
-    .guard("/protected/**", async |req| Ok(req))
-    .websocket("/ws/{name}", ws)
-            .globale_error_handler(async |e: faithea::error::Error| {
-                res_modifiers!(format!("some error~~ {:?}", e))
-            })
-            .static_map(
-                "/static/**",
-                "/Users/dadigua/Desktop/graduation/front-end-app",
-            )
-            .tls(
-                "/Users/dadigua/Desktop/graduation/key.pem",
-                "/Users/dadigua/Desktop/graduation/cert.pem",
-            )
-            .h2()
-            .host("0.0.0.0")
-            .port(443)
-            .build()
-            .run()
-            .await.expect("Error");
-    }
-
-    #[get("/")]
-    async fn hello() {
-        "hello world"
-    }
-    #[tokio::test]
-    async fn main2() {
-        HttpServer::builder()
-            .guard("/protected/**", async |req| Ok(req))
-            .globale_error_handler(async |e: faithea::error::Error| {
-                res_modifiers!(format!("some error~~ {:?}", e))
-            })
-            .build()
-            .run()
-            .await.expect("Error");
-    }
 }

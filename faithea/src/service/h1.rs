@@ -33,9 +33,7 @@ async fn handle_http(
     let mut req = HttpRequest::new(parts, None);
 
     if req.get_header(CONTENT_LENGTH).is_some() {
-        let body = crate::request::parse_body_frame(bs, &mut buf, req._inner.headers())
-            .await
-            .map_err(crate::error::Error::before_handler_invalid_param)?;
+        let body = crate::request::parse_body_frame(bs, &mut buf, req._inner.headers()).await?;
         *req._inner.body_mut() = Some(body);
     }
 
